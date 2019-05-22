@@ -522,17 +522,44 @@ app.controller('ThreadController', ['$http','$scope','$q', function($http, $scop
             //else not successful
                 //error message
                 //close the update fields
-        this.username = user;
-        this.password = user;
-        this.logIn()
-
-        user.img = this.updateAvatarUrl;
-        this.updateUser(user);
-        this.avatarUpdateFields = false;
-        this.updateAvatarUrl = '';
+        //Check if the new passwords are the same - show error if not
+        if(user.newPassword !== user.newPasswordConf) {
+            this.passwordUpdateStatus.message = 'New passwords entered do not match, try again.';
+            user.oldPassword = '';
+            user.newPassword = '';
+            user.newPasswordConf = '';
+        } 
+        //Sent request to server to check old password is valid
+        else {
+            $http({
+                method: "POST",
+                url: '/users/checkpass',
+                data: user
+            }).then( (response) => { 
+                //If old password is accepted, set new password in DB
+                    //Then reset all the password change fields and chose success message
+                console.log(response);
+                user = response.data;
+                this.passwordUpdateFields = false;
+                user.oldPassword = '';
+                user.newPassword = '';
+                user.newPasswordConf = '';
+                this.passwordUpdateStatus.message = 'Password changed successfully!'
+            }, (error) => { 
+                //If the old password is wrong, set an error message and reset the fields
+                console.log(error);
+                this.passwordUpdateStatus.message = 'Old password is incorrect, please try again.';
+                user.oldPassword = '';
+                user.newPassword = '';
+                user.newPasswordConf = '';
+            })
+        }
     }
-    this.cancelPasswordUpdate = () => {
+    this.cancelPasswordUpdate = (user) => {
         this.passwordUpdateFields = false;
+        user.oldPassword = '';
+        user.newPassword = '';
+        user.newPasswordConf = '';
     }
 
 }]);

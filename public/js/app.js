@@ -390,34 +390,33 @@ app.controller('ThreadController', ['$http','$scope', function($http, $scope){
             //else not successful
                 //error message 
                 //close the update fields
-        console.log(user);
-            
-            if(user.newPassword !== user.newPasswordConf) {
-                this.passwordUpdateStatus.message = 'New passwords entered do not match, try again.';
+                    
+        if(user.newPassword !== user.newPasswordConf) {
+            this.passwordUpdateStatus.message = 'New passwords entered do not match, try again.';
+            user.oldPassword = '';
+            user.newPassword = '';
+            user.newPasswordConf = '';
+        } else {
+            $http({
+                method: "POST",
+                url: '/users/checkpass',
+                data: user
+            }).then( (response) => { 
+                console.log(response);
+                user = response.data;
+                this.passwordUpdateFields = false;
                 user.oldPassword = '';
                 user.newPassword = '';
                 user.newPasswordConf = '';
-            } else {
-                $http({
-                    method: "POST",
-                    url: '/users/checkpass',
-                    data: user
-                }).then( (response) => { 
-                    console.log(response);
-                    user = response.data;
-                    this.passwordUpdateFields = false;
-                    user.oldPassword = '';
-                    user.newPassword = '';
-                    user.newPasswordConf = '';
-                    this.passwordUpdateStatus.message = 'Password changed successfully!'
-                }, (error) => { 
-                    console.log(error);
-                    this.passwordUpdateStatus.message = 'Old password is incorrect, please try again.';
-                    user.oldPassword = '';
-                    user.newPassword = '';
-                    user.newPasswordConf = '';
-                })
-            }     
+                this.passwordUpdateStatus.message = 'Password changed successfully!'
+            }, (error) => { 
+                console.log(error);
+                this.passwordUpdateStatus.message = 'Old password is incorrect, please try again.';
+                user.oldPassword = '';
+                user.newPassword = '';
+                user.newPasswordConf = '';
+            })
+        }     
     }
     this.cancelPasswordUpdate = (user) => { 
         this.passwordUpdateFields = false;
